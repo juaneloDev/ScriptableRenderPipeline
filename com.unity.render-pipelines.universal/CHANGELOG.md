@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue with shadows not appearing on terrains when no cascades were selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings)
+- Fixed an issue that caused depth texture to be flipped when sampling from shaders [case 1225362](https://issuetracker.unity3d.com/issues/game-object-is-rendered-incorrectly-in-the-game-view-when-sampling-depth-texture)
 
 ## [7.3.0] - 2020-03-11
 
