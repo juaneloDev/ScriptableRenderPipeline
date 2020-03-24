@@ -39,7 +39,7 @@ Install the following Editor and package versions to begin working with the __2D
 
 The __2D Renderer__ is now set up for your Project.
 
-__Note:__ If If you use the __2D Renderer__ in your Project,, some of the options related to 3D rendering in the __Universal Render Pipeline Asset__ will not have any impact on your final app or game.
+__Note:__ If you use the __2D Renderer__ in your Project, some of the options related to 3D rendering in the __Universal Render Pipeline Asset__ will not have any impact on your final app or game.
 
 
 
