@@ -7,17 +7,21 @@ Install the following Editor and package versions to begin working with the __2D
 - __Universal Render Pipeline__ version 6.7 or higher (available via the Package Manager)
 
 ## 2D Renderer Setup
-1. Create a new Project and select the __2D Template__.![](Images/2D/New_Project_With_Template.png)
+1. Create a new Project using the [2D template](https://docs.unity3d.com/Manual/ProjectTemplates.html).![](Images/2D/New_Project_With_Template.png)
+   
 
 2. Create a new __Pipeline Asset__ by going to the __Assets__ menu and selecting __Create > Rendering > Universal Render Pipeline > Pipeline Asset__ and then name the Asset.![](Images/2D/image_2.png)
+   
 
 3. Create a new __2D Renderer__ by going to __Assets > Create > Rendering > Universal Render Pipeline > 2D Renderer__. Give it a name when prompted.
 
-![](Images/2D/image_3.png)
+   ![](Images/2D/image_3.png)
+   
 
-4. Drag the __2D Renderer__ Asset onto the __Renderer List__, or select the circle icon to open the __Select Object__ window and then select the __2D Renderer__ Asset from the list.
+4. Assign the __2D Renderer__ as the default Renderer for the Render Pipeline Asset. Drag the __2D Renderer__ Asset onto the __Renderer List__, or select the circle icon to open the __Select Object__ window and then select the __2D Renderer__ Asset from the list.
+   
 
-5. From here, you have two options for setting the graphics quality settings:
+5. Set the graphics quality settings:
 
    __Option 1: For a single setting across all platforms__
 
@@ -35,7 +39,7 @@ Install the following Editor and package versions to begin working with the __2D
 
 The __2D Renderer__ is now set up for your Project.
 
-__Note:__ If you have the experimental 2D Renderer enabled, some of the options related to 3D rendering in the __Universal Render Pipeline Asset__ will not have any impact on your final app or game.
+__Note:__ If If you use the __2D Renderer__ in your Project,, some of the options related to 3D rendering in the __Universal Render Pipeline Asset__ will not have any impact on your final app or game.
 
 
 
