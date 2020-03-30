@@ -494,6 +494,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
 - Fixed custom pass GC alloc issue in CustomPassVolume.GetActiveVolumes().
 - Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
+- Fixed an issue where unncessarily serialized members in StaticLightingSky component would change each time the scene is changed.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
