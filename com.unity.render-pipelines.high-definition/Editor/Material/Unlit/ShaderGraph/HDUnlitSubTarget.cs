@@ -239,7 +239,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = UnlitRenderStates.Forward,
+                renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = UnlitKeywords.Forward,
                 includes = UnlitIncludes.ForwardOnly,
@@ -426,13 +426,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
 
             // Caution: When using MSAA we have normal and depth buffer bind.
-            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-            // This is not a problem in no MSAA mode as there is no buffer bind
+            // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+            // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+            // - When MSAA: disable target 1 (normal buffer)
+            // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
             public static RenderStateCollection DepthForwardOnly = new RenderStateCollection
             {
                 { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
                 { RenderState.ZWrite(ZWrite.On) },
-                { RenderState.ColorMask("ColorMask 0 0") },
+                { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
+                { RenderState.ColorMask("ColorMask 0 1") },
+                { RenderState.AlphaToMask(CoreRenderStates.Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
@@ -449,7 +453,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
                 { RenderState.ZWrite(ZWrite.On) },
-                { RenderState.ColorMask("ColorMask 0 1") },
+                { RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1") },
+                { RenderState.ColorMask("ColorMask 0 2") },
+                { RenderState.AlphaToMask(CoreRenderStates.Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskMV,
@@ -477,21 +483,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     Pass = "Replace",
                 }) },
             };
-
-            public static RenderStateCollection Forward = new RenderStateCollection
-            {
-                { RenderState.Blend(CoreRenderStates.Uniforms.srcBlend, CoreRenderStates.Uniforms.dstBlend, CoreRenderStates.Uniforms.alphaSrcBlend, CoreRenderStates.Uniforms.alphaDstBlend) },
-                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-                { RenderState.ZWrite(CoreRenderStates.Uniforms.zWrite) },
-                { RenderState.ZTest(CoreRenderStates.Uniforms.zTestTransparent) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMask,
-                    Ref = CoreRenderStates.Uniforms.stencilRef,
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
         }
 #endregion
 
@@ -502,6 +493,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { CoreKeywords.HDBase },
                 { CoreKeywordDescriptors.WriteMsaaDepth },
+                { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
             };
 
             public static KeywordCollection Forward = new KeywordCollection

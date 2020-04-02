@@ -279,6 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static readonly string dstBlend = "[_DstBlend]";
             public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
             public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
+            public static readonly string alphaToMask = "[_AlphaToMask]";
             public static readonly string cullMode = "[_CullMode]";
             public static readonly string cullModeForward = "[_CullModeForward]";
             public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
@@ -329,6 +330,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskDepth,
@@ -342,6 +344,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskMV,
@@ -365,7 +368,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Blend(Blend.One, Blend.Zero) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ColorMask("ColorMask 0") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
+            { RenderState.ColorMask("ColorMask 0 1") },
         };
 
         public static RenderStateCollection Forward = new RenderStateCollection
@@ -556,6 +560,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDBase },
             { CoreKeywordDescriptors.WriteMsaaDepth },
+            { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
         public static KeywordCollection Forward = new KeywordCollection
@@ -1027,6 +1032,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Alpha Test",
             referenceName = "_ALPHATEST_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local
+        };
+
+        public static KeywordDescriptor AlphaToMask = new KeywordDescriptor()
+        {
+            displayName = "Alpha To Mask",
+            referenceName = "_ALPHATOMASK_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local

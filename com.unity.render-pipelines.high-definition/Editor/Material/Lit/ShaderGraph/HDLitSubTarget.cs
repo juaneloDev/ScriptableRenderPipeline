@@ -811,6 +811,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { CoreKeywords.HDBase },
                 { CoreKeywordDescriptors.WriteMsaaDepth },
                 { CoreKeywordDescriptors.WriteNormalBuffer },
+                { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
             };
         }
 #endregion

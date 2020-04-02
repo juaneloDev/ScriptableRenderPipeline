@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitFull,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = HairRenderStates.DepthOnly,
+                renderStates = CoreRenderStates.DepthOnly,
                 pragmas = CorePragmas.InstancedRenderingLayer,
                 defines = CoreDefines.DepthMotionVectors,
                 keywords = CoreKeywords.DepthMotionVectorsNoNormal,
@@ -554,21 +554,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region RenderStates
         static class HairRenderStates
         {
-            public static RenderStateCollection DepthOnly = new RenderStateCollection
-            {
-                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-                { RenderState.ZWrite(ZWrite.On) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
-                    Ref = CoreRenderStates.Uniforms.stencilRefDepth,
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
-
             public static RenderStateCollection MotionVectors = new RenderStateCollection
             {
+                { RenderState.AlphaToMask(CoreRenderStates.Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskMV,

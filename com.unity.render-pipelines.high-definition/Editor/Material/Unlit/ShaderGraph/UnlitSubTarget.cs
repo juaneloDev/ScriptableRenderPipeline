@@ -239,14 +239,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
 
             // Caution: When using MSAA we have normal and depth buffer bind.
-            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-            // This is not a problem in no MSAA mode as there is no buffer bind
+            // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+            // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+            // - When MSAA: disable target 1 (normal buffer)
+            // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
             public static RenderStateCollection DepthForwardOnly = new RenderStateCollection
             {
                 { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
                 { RenderState.ZWrite(ZWrite.On), new FieldCondition(Fields.SurfaceOpaque, true) },
                 { RenderState.ZWrite(ZWrite.Off), new FieldCondition(Fields.SurfaceTransparent, true) },
-                { RenderState.ColorMask("ColorMask 0 0") },
+                { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
+                { RenderState.ColorMask("ColorMask 0 1") },
             };
 
             // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
@@ -255,7 +258,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static RenderStateCollection MotionVectors = new RenderStateCollection
             {
                 { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-                { RenderState.ColorMask("ColorMask 0 1") },
+                { RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1") },
+                { RenderState.ColorMask("ColorMask 0 2") },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)StencilUsage.ObjectMotionVector}",
