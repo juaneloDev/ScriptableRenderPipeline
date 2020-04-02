@@ -40,6 +40,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
             // the deferred shader will require to use multicompile.
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
+#if (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) && defined(USE_CLUSTERED_LIGHTLIST)
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLightLoopDef.hlsl"
+#endif
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
@@ -191,7 +194,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint mask = 1u << category;
                     if (mask & _ViewTilesFlags)
                     {
-                    #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
                     #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                         if (category == LIGHTCATEGORY_PROBE_VOLUME)
                         {
@@ -206,7 +208,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                         #endif
                         }
                         else
-                    #endif
                     #endif
                         {
                             uint start;
@@ -250,7 +251,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint start;
                     uint count;
 
-                #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
                 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                     if (category == LIGHTCATEGORY_PROBE_VOLUME)
                     {
@@ -260,7 +260,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     #endif
                     }
                     else
-                #endif
                 #endif
                     {
                         GetCountAndStart(mousePosInput, category, start, count);
@@ -277,7 +276,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     }
                     else if(lightListIndex >= 0 && lightListIndex < (int)count)
                     {
-                    #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
                     #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                         if (category == LIGHTCATEGORY_PROBE_VOLUME)
                         {
@@ -286,7 +284,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                         #endif
                         }
                         else
-                    #endif
                     #endif
                         {
                             n = FetchIndex(start, lightListIndex);

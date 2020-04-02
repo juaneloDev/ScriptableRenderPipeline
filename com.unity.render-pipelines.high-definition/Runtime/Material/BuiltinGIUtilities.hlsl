@@ -1,19 +1,15 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-
-#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
-// G-Buffer pass does not constain the standard light loop.
-// Need to add all the required includes to use our custom probe volume clustered light list.
-// Need PositionInputs definition for use as argument in LightLoopDef accessor functions.
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#ifdef SHADERPASS
+#if ((SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)) || \
+     ((SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP) && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING || SHADERPASS == SHADERPASS_FORWARD))
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
-#endif // endof SHADER_PASS == SHADERPASS_GBUFFER
+#endif
+#endif // #ifdef SHADERPASS
 
-#elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+
 #define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
 
 bool IsUninitializedGI(float3 bakedGI)
@@ -21,7 +17,6 @@ bool IsUninitializedGI(float3 bakedGI)
     const float3 unitializedGI = UNINITIALIZED_GI;
     return all(bakedGI == unitializedGI);
 }
-#endif
 #endif
 
 // Return camera relative probe volume world to object transformation
@@ -100,34 +95,32 @@ float3 EvaluateProbeVolumeLegacy(float3 positionRWS, float3 normalWS)
 
 float3 EvaluateProbeVolumes(PositionInputs posInputs, float3 normalWS, uint renderingLayers)
 {
-    #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
     // SHADEROPTIONS_PROBE_VOLUMES can be defined in ShaderConfig.cs.hlsl but set to 0 for disabled.
     #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
         // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
         // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
         return UNINITIALIZED_GI;
     #elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-    #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+        #ifdef SHADERPASS
+        #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
 
-    #if SHADERPASS == SHADERPASS_GBUFFER
+        #if SHADERPASS == SHADERPASS_GBUFFER
         // posInputs.tileCoord will be zeroed out in GBuffer pass. Need to manually compute tile coord here.
         float2 positionSS = posInputs.positionNDC.xy * _ScreenSize.xy;
         uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
         posInputs.tileCoord = tileCoord;
-    #endif
+        #endif
 
         return EvaluateProbeVolumesMaterialPass(posInputs, normalWS, renderingLayers);
-    #else
+        #else
         // !(SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
         return float3(0, 0, 0);
-    #endif
+        #endif
+        #else 
+        return float3(0, 0, 0);
+        #endif // #ifdef SHADERPASS
     #else
         // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_DISABLED
-        return float3(0, 0, 0);
-    #endif
-
-    #else
-        // !defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
         return float3(0, 0, 0);
     #endif
 }
@@ -175,9 +168,9 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     ZERO_INITIALIZE(PositionInputs, posInputs);
     posInputs.positionWS = positionRWS;
 
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+    #ifdef SHADERPASS
+    #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
     float4 positionCS = mul(UNITY_MATRIX_VP, float4(positionRWS, 1.0));
     positionCS.xyz /= positionCS.w;
     float2 positionNDC = positionCS.xy * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5;
@@ -191,8 +184,8 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 
     // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
     renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
-#endif
-#endif
+    #endif
+    #endif // #ifdef SHADERPASS
 #endif
 
     return SampleBakedGI(posInputs, normalWS, renderingLayers, uvStaticLightmap, uvDynamicLightmap);
