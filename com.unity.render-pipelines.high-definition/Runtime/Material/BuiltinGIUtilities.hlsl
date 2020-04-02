@@ -139,21 +139,29 @@ float3 SampleBakedGI(PositionInputs posInputs, float3 normalWS, uint renderingLa
 {
     float3 positionRWS = posInputs.positionWS;
 
-#if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
-    // TODO: (Nick): If probe volumes are enabled, should we blend lightmap data with additive / subtractive probe volume data?
-    return EvaluateLightmap(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
+#define SAMPLE_LIGHTMAP (defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON))
+#define SAMPLE_PROBEVOLUME (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED)
 
-#elif defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
-    return EvaluateProbeVolumes(posInputs, normalWS, renderingLayers);
-#else
+#if SAMPLE_LIGHTMAP || SAMPLE_PROBEVOLUME
+    float3 combinedGI = float3(0, 0, 0);
+
+#if SAMPLE_LIGHTMAP
+    combinedGI += EvaluateLightmap(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
+#endif
+
+#if SAMPLE_PROBEVOLUME
+    combinedGI += EvaluateProbeVolumes(posInputs, normalWS, renderingLayers);
+#endif
+
+    return combinedGI;
+#endif
+
+#undef SAMPLE_LIGHTMAP
+#undef SAMPLE_PROBEVOLUME
+
+    // TODO(Tob): Should we include legacy probes in MaterialPass mode as well when ProbeVolumes are active?
     // Fallback to legacy ProbeVolume when lightmaps are not availible and Probe Volumes are disabled.
     return EvaluateProbeVolumeLegacy(positionRWS, normalWS);
-#endif
-#else
-    // Fallback to legacy ProbeVolume when lightmaps are not availible and Probe Volumes are disabled.
-    return EvaluateProbeVolumeLegacy(positionRWS, normalWS);
-#endif
 }
 
 // Function signature of SampleBakedGI changed when probe volumes we added, as they require full PositionInputs.
